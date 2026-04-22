@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Mocking SAP HANA using Microsoft SQL Server (based on sqlserver:// DSN)
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mdss_sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=StrongPassword123
+    ports:
+      - "1433:1433"
+    healthcheck:
+      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "StrongPassword123", "-Q", "SELECT 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for holiday data
+  postgres:
+    image: postgres:15-alpine
+    container_name: mdss_postgres
+    environment:
+      - POSTGRES_USER=mdss
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_DB=mdss-master-data-scheduler-be-main
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U mdss" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching multipliers and offsets
+  redis:
+    image: redis:7-alpine
+    container_name: mdss_redis
+    ports:
+      # Mapping to match the standard port locally
+      - "6379:6379"
+    command: redis-server --requirepass redispass
+    healthcheck:
+      test: [ "CMD", "redis-cli", "-a", "redispass", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper (Required for Kafka)
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: mdss_zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  # Kafka for meter recalculation events
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: mdss_kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+volumes:
+  pgdata:

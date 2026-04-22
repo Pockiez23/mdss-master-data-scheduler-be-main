@@ -1,0 +1,10 @@
+﻿ARG IMAGE_PREFIX
+# Change version according to your project needs
+FROM ${IMAGE_PREFIX}/golang:1.25.1-alpine
+
+WORKDIR /usr/src/app
+
+COPY go.mod go.sum ./
+RUN go mod download && go mod verify
+
+USER 65532

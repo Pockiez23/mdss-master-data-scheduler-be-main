@@ -1,0 +1,69 @@
+﻿# TODO: change 0.0.1 to dynamic variable that can be replaced by the backstage (if there are more than 1 version)
+include:
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "build-base.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "build.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "sqa-sonarqube.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "sqa-dependency-check.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "sqa-trivy.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "artifact.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "update-deployment-template.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "tag-uat.yml"
+  - project: "developer/share/ci"
+    ref: go-0.0.1
+    file: "tag-production.yml"
+
+#* Example:
+#* values_file_path => api/main-api
+#* group => todlong
+variables:
+  IMAGE_REPOSITORY: "${CI_REGISTRY_IMAGE}"
+  VALUES_FILE_PATH: "api/mdss-master-data-scheduler-be"
+  DOWNSTREAM_DEPLOYMENT_PATH: developer/mdss/deployment
+  UPSTREAM_IMAGE_REPOSITORY: "${CI_REGISTRY_IMAGE}"
+
+stages:
+  - build-base
+  - build
+  - sqa
+  - artifact
+  - update-deployment
+  - tag-uat
+  - update-deployment-uat
+  - tag-production
+  - update-deployment-production
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: "$CI_COMMIT_TAG"
+
+update-deployment-dev:
+  extends: .update-deployment-template-dev
+  variables:
+    UPSTREAM_VALUES_FILE_FULL_PATH: "${VALUES_FILE_PATH}/values.dev.yml"
+
+update-deployment-uat:
+  extends: .update-deployment-template-uat
+  variables:
+    UPSTREAM_VALUES_FILE_FULL_PATH: "${VALUES_FILE_PATH}/values.uat.yml"
+
+update-deployment-production:
+  extends: .update-deployment-template-production
+  variables:
+    UPSTREAM_VALUES_FILE_FULL_PATH: "${VALUES_FILE_PATH}/values.prod.yml"
