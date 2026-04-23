@@ -26,13 +26,13 @@ func NewRepository(db *gorm.DB) IRepository {
 func (repo Repository) FetchAll() ([]model.Holiday, error) {
 	var results []model.Holiday
 
-	if err := repo.DB.Table("mst.pea_holiday").Select("date").Where(
+	if err := repo.DB.Table("mst.pea_holiday").Where(
 		"peak_offpeak = ?", "OFFPEAK",
 	).Where(
 		"name IS NOT NULL",
 	).Where(
 		`name <> ''`,
-	).Find(&results).Error; err != nil {
+	).Order("date ASC").Find(&results).Error; err != nil {
 		return nil, err
 	}
 
