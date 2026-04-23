@@ -9,7 +9,7 @@
 - **Pattern**: Layered — Handler → Service → Repository, plus cron-driven job execution
 - **Key modules**:
   - `scheduler/` — cron job registration; runs master data and holiday sync
-  - `multiply/` — fetches ZDMI from HANA, diffs against Redis, publishes Kafka events
+  - `multiply/` — fetches master data from HANA or PostgreSQL, diffs against Redis, publishes Kafka events
   - `holiday/` — fetches holidays from PostgreSQL, caches in Redis
   - `recal/` — compares stored vs new start/end dates to detect changes
   - `rediz/` — Redis hash/string operations and offset tracking
@@ -113,7 +113,7 @@ mockery
 ## Dependencies & Integrations
 | System | Purpose | Auth |
 |--------|---------|------|
-| SAP HANA / SQL Server | Source of ZDMI master meter data | DSN in `DATABASE_HANA_DSN` |
+| SAP HANA / PostgreSQL | Source of ZDMI master meter data | DSN in `DATABASE_HANA_DSN` |
 | PostgreSQL | Source of holiday data (`mst.pea_holiday`) | DSN in `DATABASE_PG_DSN` |
 | Apache Kafka | Publish meter recalculation events | SASL (PLAIN/SCRAM-SHA256/SHA512) + optional TLS |
 | Redis (Sentinel) | Cache multipliers, three-phase flags, offsets | Username/password; Sentinel if `REDIS_MASTER_NAME` set |

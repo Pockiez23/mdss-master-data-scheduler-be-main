@@ -112,7 +112,7 @@ func (repo Repository) Fetch(offset time.Time) ([]model.ZDMI, error) {
 	INNER JOIN "INFUSER"."REP_RT_METER_TYPE" AS meter_type
 		ON meter_master.MANDT = meter_type.MANDT AND meter_master.FUNKLAS = meter_type.FUNKLAS
 	WHERE
-		PROCESSDATE >= ? AND PROCESSTIME >= ? AND
+		PROCESSDATE >= $1 AND PROCESSTIME >= $2 AND
 		SERNR IS NOT NULL AND SERNR <> '' AND
 		BIS IS NOT NULL AND BIS <> '' AND
 		AB IS NOT NULL AND AB <> '' AND

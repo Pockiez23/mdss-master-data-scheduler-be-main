@@ -10,6 +10,7 @@ import (
 type IRepository interface {
 	FetchAll() ([]model.Holiday, error)
 	Fetch(offset time.Time) ([]model.Holiday, error)
+	Upsert(holiday model.Holiday) error
 }
 
 type Repository struct {
@@ -54,4 +55,21 @@ func (repo Repository) Fetch(offset time.Time) ([]model.Holiday, error) {
 	}
 
 	return results, nil
+}
+
+func (repo Repository) Upsert(holiday model.Holiday) error {
+	var count int64
+	repo.DB.Table("mst.pea_holiday").Where("date = ?", holiday.Date).Count(&count)
+
+	if count > 0 {
+		return repo.DB.Table("mst.pea_holiday").Where("date = ?", holiday.Date).Updates(map[string]interface{}{
+			"day":          holiday.Day,
+			"peak_offpeak": holiday.PeakOffpeak,
+			"name":         holiday.Name,
+			"updated_at":   holiday.UpdatedAt,
+			"updated_by":   holiday.UpdatedBy,
+		}).Error
+	}
+
+	return repo.DB.Table("mst.pea_holiday").Create(&holiday).Error
 }

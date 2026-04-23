@@ -18,6 +18,7 @@ type IHandler interface {
 	GetJobs(ctx *gin.Context)
 	GetContractAccount(ctx *gin.Context)
 	GetHolidays(ctx *gin.Context)
+	SyncGoogleSheet(ctx *gin.Context)
 }
 
 type Handler struct {
@@ -101,4 +102,20 @@ func (handler Handler) GetHolidays(ctx *gin.Context) {
 	}
 
 	ctx.Status(http.StatusNoContent)
+}
+
+func (handler Handler) SyncGoogleSheet(ctx *gin.Context) {
+	if err := handler.HolidayService.SyncHolidaysFromGoogleSheet(ctx); err != nil {
+		if errors.Is(err, global.ErrLocked) {
+			ctx.Status(http.StatusNoContent)
+			return
+		}
+
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": "Google Sheet synced to PostgreSQL"})
 }

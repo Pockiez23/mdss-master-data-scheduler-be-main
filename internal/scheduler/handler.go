@@ -61,5 +61,9 @@ func (handler Handler) SyncHolidays() {
 
 func (handler Handler) DailyJob() {
 	log.Println("Daily job executed at midnight/startup")
-	// TODO: Add logic for the daily job here
+	ctx := context.Background()
+
+	if err := handler.HolidayService.SyncHolidaysFromGoogleSheet(ctx); err != nil {
+		log.Println("Sync holidays from Google Sheet:", err)
+	}
 }

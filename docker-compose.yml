@@ -1,20 +1,7 @@
 version: '3.8'
 
 services:
-  # Mocking SAP HANA using Microsoft SQL Server (based on sqlserver:// DSN)
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mdss_sqlserver
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=StrongPassword123
-    ports:
-      - "1433:1433"
-    healthcheck:
-      test: [ "CMD", "/opt/mssql-tools/bin/sqlcmd", "-U", "sa", "-P", "StrongPassword123", "-Q", "SELECT 1" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+  # SAP HANA mock is now using PostgreSQL (mdss_postgres)
 
   # PostgreSQL for holiday data
   postgres:
@@ -28,6 +15,7 @@ services:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - "./sql script/holiday.sql:/docker-entrypoint-initdb.d/holiday.sql"
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U mdss" ]
       interval: 10s

@@ -17,6 +17,7 @@ import (
 	"github.com/SAP/go-hdb/driver"
 	"github.com/caarlos0/env/v11"
 	"github.com/gin-gonic/gin"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/redis/go-redis/v9"
@@ -95,10 +96,10 @@ func main() {
 	hdb, err := func() (*sql.DB, error) {
 		if strings.HasPrefix(conf.Database.HANADSN, "sqlserver") {
 			return sql.Open("sqlserver", conf.Database.HANADSN)
-
+		} else if strings.HasPrefix(conf.Database.HANADSN, "postgres") || strings.HasPrefix(conf.Database.HANADSN, "postgresql") {
+			return sql.Open("pgx", conf.Database.HANADSN)
 		} else {
 			return sql.Open(driver.DriverName, conf.Database.HANADSN)
-
 		}
 	}()
 	if err != nil {
@@ -144,8 +145,9 @@ func main() {
 	group.GET("/jobs", handler.GetJobs)
 	group.GET("/contract-accounts/:id", handler.GetContractAccount)
 	group.GET("/holidays", handler.GetHolidays)
-
-	if err := router.Run(); err != nil {
+	group.POST("/holidays/sync", handler.SyncGoogleSheet)
+	// try port 3030 for testing
+	if err := router.Run(":3030"); err != nil {
 		log.Fatal(err)
 	}
 }
