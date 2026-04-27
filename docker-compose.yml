@@ -3,24 +3,24 @@ version: '3.8'
 services:
   # SAP HANA mock is now using PostgreSQL (mdss_postgres)
 
-  # PostgreSQL for holiday data
-  postgres:
-    image: postgres:15-alpine
-    container_name: mdss_postgres
+  # Microsoft SQL Server for holiday and mock master data
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mdss_mssql
+    user: root
     environment:
-      - POSTGRES_USER=mdss
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=mdss-master-data-scheduler-be-main
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=12345
+      - MSSQL_PID=Developer
     ports:
-      - "5432:5432"
+      - "1433:1433"
     volumes:
-      - pgdata:/var/lib/postgresql/data
-      - "./sql script/holiday.sql:/docker-entrypoint-initdb.d/holiday.sql"
+      - mssqldata:/var/opt/mssql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U mdss" ]
+      test: [ "CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S MSSQLSERVER01 -U sa -P 12345 -Q 'SELECT 1'" ]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
 
   # Redis for caching multipliers and offsets
   redis:
@@ -63,4 +63,4 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
 volumes:
-  pgdata:
+  mssqldata:

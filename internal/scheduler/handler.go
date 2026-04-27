@@ -25,10 +25,12 @@ type Handler struct {
 	HolidayService  holiday.IService
 }
 
-func NewHandler(db *sql.DB, pgdb *gorm.DB, rdb *redis.Client, producer sarama.SyncProducer) IHandler {
+// func NewHandler(db *sql.DB, pgdb *gorm.DB, rdb *redis.Client, producer sarama.SyncProducer) IHandler {
+func NewHandler(db *sql.DB, holidayDb *gorm.DB, rdb *redis.Client, producer sarama.SyncProducer) IHandler {
 	return &Handler{
 		MultiplyService: multiply.NewService(db, rdb, producer),
-		HolidayService:  holiday.NewService(pgdb, rdb),
+		//HolidayService:  holiday.NewService(pgdb, rdb),
+		HolidayService: holiday.NewService(holidayDb, rdb),
 	}
 }
 

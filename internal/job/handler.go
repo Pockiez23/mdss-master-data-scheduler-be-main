@@ -26,10 +26,12 @@ type Handler struct {
 	HolidayService  holiday.IService
 }
 
-func NewHandler(db *sql.DB, pgdb *gorm.DB, rdb *redis.Client, producer sarama.SyncProducer) IHandler {
+// func NewHandler(db *sql.DB, pgdb *gorm.DB, rdb *redis.Client, producer sarama.SyncProducer) IHandler {
+func NewHandler(db *sql.DB, holidayDb *gorm.DB, rdb *redis.Client, producer sarama.SyncProducer) IHandler {
 	return &Handler{
 		MultiplyService: multiply.NewService(db, rdb, producer),
-		HolidayService:  holiday.NewService(pgdb, rdb),
+		//HolidayService:  holiday.NewService(pgdb, rdb),
+		HolidayService: holiday.NewService(holidayDb, rdb),
 	}
 }
 
@@ -117,5 +119,6 @@ func (handler Handler) SyncGoogleSheet(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": "Google Sheet synced to PostgreSQL"})
+	//ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": "Google Sheet synced to PostgreSQL"})
+	ctx.JSON(http.StatusOK, gin.H{"status": "success", "message": "Google Sheet synced to SQL Server"})
 }

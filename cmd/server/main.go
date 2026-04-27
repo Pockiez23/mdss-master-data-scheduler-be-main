@@ -22,7 +22,7 @@ import (
 	_ "github.com/microsoft/go-mssqldb"
 	"github.com/redis/go-redis/v9"
 	"github.com/robfig/cron/v3"
-	"gorm.io/driver/postgres"
+	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -112,13 +112,19 @@ func main() {
 	}
 
 	// New PostgreSQL database connection
-	pgdb, err := gorm.Open(postgres.Open(conf.Database.PGDSN), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+	/*pgdb, err := gorm.Open(postgres.Open(conf.Database.PGDSN), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
+	if err != nil {
+		log.Fatal(errors.Join(errors.New("connect database"), err))
+	}*/
+
+	// New MSSQL database connection
+	holidayDb, err := gorm.Open(sqlserver.Open(conf.Database.MSSQLDSN), &gorm.Config{Logger: logger.Default.LogMode(logger.Info)})
 	if err != nil {
 		log.Fatal(errors.Join(errors.New("connect database"), err))
 	}
 
 	// Add scheduler
-	schedule := scheduler.NewHandler(hdb, pgdb, rdb, producer)
+	schedule := scheduler.NewHandler(hdb, holidayDb, rdb, producer)
 	if err := schedule.AddFunc(conf.Job.MasterDataCron, schedule.MasterDataSync); err != nil {
 		log.Fatal(errors.Join(errors.New("create master data sync scheduler"), err))
 	}
@@ -135,7 +141,8 @@ func main() {
 	schedule.DailyJob()
 
 	// New handler
-	handler := job.NewHandler(hdb, pgdb, rdb, producer)
+	//handler := job.NewHandler(hdb, pgdb, rdb, producer)
+	handler := job.NewHandler(hdb, holidayDb, rdb, producer)
 
 	// API Router
 	router := gin.Default()
