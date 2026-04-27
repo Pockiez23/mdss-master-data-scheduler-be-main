@@ -2,7 +2,7 @@
 // github.com/vektra/mockery
 // template: testify
 
-package holiday
+package mocks
 
 import (
 	"app/internal/model"

@@ -23,16 +23,12 @@ func NewRepository(db *gorm.DB) IRepository {
 	}
 }
 
+// internal/holiday/respository.go
+
 func (repo Repository) FetchAll() ([]model.Holiday, error) {
 	var results []model.Holiday
 
-	if err := repo.DB.Table("mst.pea_holiday").Where(
-		"peak_offpeak = ?", "OFFPEAK",
-	).Where(
-		"name IS NOT NULL",
-	).Where(
-		`name <> ''`,
-	).Order("date ASC").Find(&results).Error; err != nil {
+	if err := repo.DB.Table("mst.pea_holiday").Order("date ASC").Find(&results).Error; err != nil {
 		return nil, err
 	}
 
@@ -43,12 +39,6 @@ func (repo Repository) Fetch(offset time.Time) ([]model.Holiday, error) {
 	var results []model.Holiday
 
 	if err := repo.DB.Table("mst.pea_holiday").Select("date").Where(
-		"peak_offpeak = ?", "OFFPEAK",
-	).Where(
-		"name IS NOT NULL",
-	).Where(
-		`name <> ''`,
-	).Where(
 		"created_at >= ? OR updated_at >= ?", offset, offset,
 	).Find(&results).Error; err != nil {
 		return nil, err

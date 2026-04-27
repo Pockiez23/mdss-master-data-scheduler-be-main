@@ -176,6 +176,7 @@ func (service Service) SyncHolidaysFromGoogleSheet(ctx context.Context) error {
 		t := title
 
 		group.Go(func() error {
+			log.Printf("[HolidaySync] Starting sync for sheet %s\n", t)
 			// 2. Get values for each year sheet
 			dataURL := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", spreadsheetID, t, apiKey)
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, dataURL, nil)
@@ -208,14 +209,19 @@ func (service Service) SyncHolidaysFromGoogleSheet(ctx context.Context) error {
 				if i == 0 {
 					continue // Skip header
 				}
-				if len(row) < 4 {
-					continue // Incomplete row
-				}
-
 				dateStr := row[0]
-				day := row[1]
-				peakOffpeak := row[2]
-				name := row[3]
+				day := ""
+				if len(row) > 1 {
+					day = row[1]
+				}
+				peakOffpeak := ""
+				if len(row) > 2 {
+					peakOffpeak = row[2]
+				}
+				name := ""
+				if len(row) > 3 {
+					name = row[3]
+				}
 
 				parsedDate, err := time.Parse("2006-01-02", dateStr)
 				if err != nil {
