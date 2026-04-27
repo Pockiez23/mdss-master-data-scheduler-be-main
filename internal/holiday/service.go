@@ -138,7 +138,7 @@ func (service Service) SyncHolidaysFromGoogleSheet(ctx context.Context) error {
 	spreadsheetID := matches[1]
 
 	// 1. Get Spreadsheet Metadata to find sheets
-	metaURL := fmt.Sprintf("Holiday Format for Data Streaming", spreadsheetID, apiKey)
+	metaURL := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s?key=%s", spreadsheetID, apiKey)
 	resp, err := http.Get(metaURL)
 	if err != nil {
 		return err
@@ -178,7 +178,7 @@ func (service Service) SyncHolidaysFromGoogleSheet(ctx context.Context) error {
 		group.Go(func() error {
 			log.Printf("[HolidaySync] Starting sync for sheet %s\n", t)
 			// 2. Get values for each year sheet
-			dataURL := fmt.Sprintf("Holiday Format for Data Streaming", spreadsheetID, t, apiKey)
+			dataURL := fmt.Sprintf("https://sheets.googleapis.com/v4/spreadsheets/%s/values/%s?key=%s", spreadsheetID, t, apiKey)
 			req, err := http.NewRequestWithContext(ctx, http.MethodGet, dataURL, nil)
 			if err != nil {
 				return err
